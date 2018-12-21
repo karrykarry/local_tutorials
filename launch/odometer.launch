@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+
+	<node name="odometer" pkg="local_tutorials" type="odometer" output="screen"  >		
+
+		<!-- <remap from="velodyne_obstacles" to="velodyne_obstacles"/> -->
+		<!-- <remap from="velodyne_clear" to="velodyne_clear"/> -->
+	</node>
+</launch>
