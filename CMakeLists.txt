@@ -169,6 +169,10 @@ target_link_libraries(odometer
 	${catkin_LIBRARIES}
 )
 
+add_executable(mcl node/mcl_node.cpp src/mcl.cpp)
+target_link_libraries(mcl
+	${catkin_LIBRARIES}
+)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
