@@ -100,10 +100,10 @@ endif()
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
+generate_dynamic_reconfigure_options(
+   cfg/mcl_param.cfg
 #   cfg/DynReconf2.cfg
-# )
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -169,7 +169,9 @@ target_link_libraries(odometer
 	${catkin_LIBRARIES}
 )
 
+
 add_executable(mcl node/mcl_node.cpp src/mcl.cpp)
+add_dependencies(mcl local_tutorials_gencfg)
 target_link_libraries(mcl
 	${catkin_LIBRARIES}
 )
