@@ -102,6 +102,7 @@ endif()
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
 generate_dynamic_reconfigure_options(
    cfg/mcl_param.cfg
+   cfg/d_kan_grid.cfg
 #   cfg/DynReconf2.cfg
 )
 
@@ -175,6 +176,16 @@ add_dependencies(mcl local_tutorials_gencfg)
 target_link_libraries(mcl
 	${catkin_LIBRARIES}
 )
+
+
+add_executable(pcd2grid src/pcd2grid.cpp)
+add_dependencies(pcd2grid d_kan_grid_gencfg)
+target_link_libraries(pcd2grid
+	${catkin_LIBRARIES}
+	${PCL_LIBRARIES}
+)
+
+
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
