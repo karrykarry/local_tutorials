@@ -170,7 +170,7 @@ target_link_libraries(odometer
 )
 
 
-add_executable(mcl node/mcl_node.cpp src/mcl.cpp)
+add_executable(mcl node/mcl_node.cpp src/mcl.cpp src/mcl_func.cpp)
 add_dependencies(mcl local_tutorials_gencfg)
 target_link_libraries(mcl
 	${catkin_LIBRARIES}
