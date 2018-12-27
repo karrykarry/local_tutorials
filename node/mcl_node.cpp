@@ -17,9 +17,11 @@ int main(int argc, char* argv[])
 	
 	MCL mcl(n,priv_nh);
 	
-	ros::Rate loop(10);
+	ros::Rate loop(5);
 	while(ros::ok()){
-		mcl.pub();
+		if(mcl.start_fg)mcl.pub();
+		else std::cout<<"not start_fg"<<std::endl;
+
 
 		loop.sleep();
 		ros::spinOnce();

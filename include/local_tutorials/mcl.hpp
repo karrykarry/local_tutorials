@@ -37,6 +37,7 @@ class MCL{
 		int pf_num;
 
 		vector<Particle> pf_cloud;
+		vector<Particle> new_pf_cloud;
 
 		void init_set();
 		geometry_msgs::Pose pf2geo(Particle pf);
@@ -46,6 +47,7 @@ class MCL{
 
 	public:
 		MCL(ros::NodeHandle n,ros::NodeHandle priv_nh);
+		bool start_fg;
 		void pub();
 		void paramcallback(local_tutorials::mcl_paramConfig &config, uint32_t level);
 };

@@ -2,7 +2,7 @@
 #include"mcl_func.hpp"
 
 MCL::MCL(ros::NodeHandle n,ros::NodeHandle priv_nh):
-	pf_num(1000)
+	pf_num(1000),start_fg(false)
 {
 	server.setCallback(boost::bind(&MCL::paramcallback, this, _1, _2));
 	pf_pub = n.advertise<geometry_msgs::PoseArray>("/pf_cloud",100);
@@ -32,32 +32,38 @@ MCL::init_set(){
 	for(int i=0;i<pf_num;i++){
 	std::random_device rnd;
 	mt19937 mt(rnd());
-	uniform_real_distribution<double> score(-10.0,10.0);
+	uniform_real_distribution<double> score(-2.0,2.0);
 
 	pf.x = score(mt);
 	pf.y = score(mt);
-	pf.yaw = 0.0;
+	pf.yaw = score(mt) / 2.0;
 
 	pf.weight = 1.0/pf_num;
 	pf_cloud.push_back(pf);
 	}
 }
 
-
+int cnt=0;
 void
 MCL::pub(){
 	geometry_msgs::Pose pf_geo;
 
+	int pf_size = (int)pf_cloud.size();
 	pf_array.poses.clear();
-	pf_array.poses.resize(pf_num);
+	m_MCL_F->reset();
+	pf_array.poses.resize(pf_size);
 	
 	double lcl_x,lcl_y,lcl_yaw;
+	double weight_sum;
 	lcl_x = lcl_y = lcl_yaw =  0.0;
+	weight_sum = 0.0;
 
 	m_MCL_F->move_model(pf_cloud);
-
-	// #pragma omp parallel for
-	for(int i=0;i<pf_num;i++){
+	 // #pragma omp parallel for
+	for(int i=0;i<pf_size;i++){
+		
+		pf_cloud[i].weight = m_MCL_F->measurement_model(pf_cloud[i].x,pf_cloud[i].y,pf_cloud[i].yaw);
+		
 		pf_geo = pf2geo(pf_cloud[i]);
 
 		pf_array.poses[i] = pf_geo;
@@ -66,14 +72,33 @@ MCL::pub(){
 		lcl_x += pf_geo.position.x*pf_cloud[i].weight;
 		lcl_y += pf_geo.position.y*pf_cloud[i].weight;
 		lcl_yaw += pf_cloud[i].yaw*pf_cloud[i].weight;
+		weight_sum += pf_cloud[i].weight;
+	
 	}
 	pf_array.header.stamp = ros::Time::now();
 	pf_pub.publish(pf_array);
+
+
+ if(cnt>50){	
+ m_MCL_F->resample(pf_cloud,new_pf_cloud);
+
+ 	pf_cloud = new_pf_cloud; 
+
+ 	new_pf_cloud.clear();
+// 	cout<<"aaaaaa"<<endl;
+ }
+ cnt++;
+	lcl_x /= weight_sum;
+	lcl_y /= weight_sum;
+	lcl_yaw /= weight_sum;
 
 	while(lcl_yaw > M_PI) lcl_yaw -= 2*M_PI;
 	while(lcl_yaw < -M_PI) lcl_yaw += 2*M_PI;
 
 	lcl_pub_(lcl_x,lcl_y,lcl_yaw);
+	
+
+
 }
 
 

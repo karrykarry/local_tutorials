@@ -39,7 +39,7 @@ class Pcd2Grid{
 
 Pcd2Grid::Pcd2Grid(ros::NodeHandle n,ros::NodeHandle priv_nh) :
 	cloud_IN(new pcl::PointCloud<pcl::PointXYZI>),
-	cell_filter(10),width(100),height(30),R(0.05)
+	cell_filter(30),width(60),height(30),R(0.1)
 {
 	server.setCallback(boost::bind(&Pcd2Grid::paramcallback, this, _1, _2));
 	map_pub = n.advertise<sensor_msgs::PointCloud2>("/cloud_map", 10);
@@ -127,8 +127,10 @@ Pcd2Grid::create_obstacle_map(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, nav_ms
 		}
 	}
 
-
+	cout<<width/R<<endl;
+	cout<<count.size()<<endl;
 	for(int i = 0;i<count.size(); i++){
+	// for(int i = 0;i<12000; i++){
 		if(count[i] > cell_filter){
 			map_->data[i] = 100;
 	

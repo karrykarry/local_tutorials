@@ -175,12 +175,19 @@ add_executable(mcl node/mcl_node.cpp src/mcl.cpp src/mcl_func.cpp)
 add_dependencies(mcl local_tutorials_gencfg)
 target_link_libraries(mcl
 	${catkin_LIBRARIES}
+	${PCL_LIBRARIES}
 )
 
 
 add_executable(pcd2grid src/pcd2grid.cpp)
 add_dependencies(pcd2grid d_kan_grid_gencfg)
 target_link_libraries(pcd2grid
+	${catkin_LIBRARIES}
+	${PCL_LIBRARIES}
+)
+
+add_executable(lidar2grid src/lidar2grid.cpp)
+target_link_libraries(lidar2grid
 	${catkin_LIBRARIES}
 	${PCL_LIBRARIES}
 )

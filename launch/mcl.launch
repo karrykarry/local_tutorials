@@ -1,7 +1,10 @@
 <?xml version="1.0"?>
 <launch>
+	
+	<include file="$(find velodyne_height_map)/launch/velodyne_height_map.launch"/>
 
-	<node name="mcl" pkg="local_tutorials" type="mcl" output="screen" >		
+	<node name="mcl" pkg="local_tutorials" type="mcl" output="screen" >
+		<remap from="velodyne_points" to="velodyne_obstacles" />
 
 	</node>
 

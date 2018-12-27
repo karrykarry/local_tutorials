@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+    <include file="$(find velodyne_height_map)/launch/velodyne_height_map.launch"/>
+
+	<node name="lidar2grid" pkg="local_tutorials" type="lidar2grid" output="screen" >	
+	</node>
+
+
+</launch>
+
+
+

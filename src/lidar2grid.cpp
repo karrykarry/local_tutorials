@@ -16,53 +16,36 @@
 
 using namespace std;	
 
-
 pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-const int cell_filter = 10;		//for ikuta
-const float width = 20;
-const float height = 20;
+const int cell_filter = 1;		//for ikuta
+const double width = 20;
+const double height = 20;
 
-const float min_x = 0.0;
-const float min_y = 0.0;
+const double min_x = 0.0;
+const double min_y = 0.0;
 
-const float R = 0.05;                //障害物判定の範囲を指定
+const double R = 0.05;                //障害物判定の範囲を指定
 ros::Publisher grid_pub;
 ros::Publisher cell_pub;
 
-nav_msgs::OccupancyGrid map;
-nav_msgs::GridCells obstacle_cell;
+
+void create_obstacle_map(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, nav_msgs::OccupancyGrid *map){            //全体のマップを作成
+	nav_msgs::GridCells obstacle_cell;
+	geometry_msgs::Point obstacle_point;
 
 
+	obstacle_cell.cell_width = R;
+	obstacle_cell.cell_height = R;
 
-void sq_lidarCallback(const sensor_msgs::PointCloud2ConstPtr& input)
-{
-    // Convert the sensor_msgs/PointCloud2 data to pcl/PointCloud
-    pcl::fromROSMsg (*input, *cloud);
-
-	create_obstacle_map(cloud,&map,&obstacle_cell);
-
-	map.header.stamp = ros::Time::now();
-   	map.header.frame_id = "/velodyne";
-	
 	obstacle_cell.header.stamp = ros::Time::now();
 	obstacle_cell.header.frame_id = "/velodyne";
 
-	grid_pub.publish(map);
-	cell_pub.publish(obstacle_cell);
-
-		
-}
-
-
-void create_obstacle_map(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, nav_msgs::OccupancyGrid *map, nav_msgs::GridCells *obstacle_cell){            //全体のマップを作成
-	geometry_msgs::Point obstacle_point;
 
 	vector<int>	count((long(width/R) * long(height/R)), 0);
 	for(int i = 0; i != map->data.size(); i++){
 		map->data[i] = 0;
 	}
 
-	cout<<map->info.origin.position.x<<endl; 
 
 	for(size_t i = 0; i < cloud->points.size(); i++){
 		int x = int((cloud->points[i].x - map->info.origin.position.x) / R);
@@ -73,7 +56,7 @@ void create_obstacle_map(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, nav_msgs::Oc
 		}
 	}
 
-
+	obstacle_cell.cells.clear();
 	for(int i = 0;i<count.size(); i++){
 		if(count[i] > cell_filter){
 			map->data[i] = 100;
@@ -82,21 +65,18 @@ void create_obstacle_map(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, nav_msgs::Oc
 			obstacle_point.y = int(i / map->info.width) * R + map->info.origin.position.y;
 			obstacle_point.z = 0;
 			
-			obstacle_cell->cells.push_back(obstacle_point);	
+			obstacle_cell.cells.push_back(obstacle_point);	
 		}
 	}
-
+	cell_pub.publish(obstacle_cell);	
 }
 
-int main (int argc, char** argv)
+void sq_lidarCallback(const sensor_msgs::PointCloud2ConstPtr& input)
 {
-	ros::init(argc, argv, "velo2grid");
-	ros::NodeHandle n;
+    // Convert the sensor_msgs/PointCloud2 data to pcl/PointCloud
+    pcl::fromROSMsg (*input, *cloud);
 
-	grid_pub = n.advertise<nav_msgs::OccupancyGrid>("/cloud_grid", 100, true);
-	cell_pub = n.advertise<nav_msgs::GridCells>("/cloud_cell", 100, true);
-
-    ros::Subscriber lidar_sub = n.subscribe("/velodyne_obstacles", 1000, sq_lidarCallback);
+	nav_msgs::OccupancyGrid map;
 
 	map.data.resize(int(width/R) * int(height/R));
 	map.info.width = int(width/R);
@@ -105,9 +85,26 @@ int main (int argc, char** argv)
 	map.info.origin.position.x = (min_x - width)/2.0; 
 	map.info.origin.position.y = (min_y - height)/2.0;
 
-	obstacle_cell.cell_width = R;
-	obstacle_cell.cell_height = R;
-	
+	create_obstacle_map(cloud,&map);
+
+	map.header.stamp = ros::Time::now();
+   	map.header.frame_id = "/velodyne";
+
+	grid_pub.publish(map);
+}
+
+int main (int argc, char** argv)
+{
+	ros::init(argc, argv, "velo2grid");
+	ros::NodeHandle n;
+	ros::Rate roop(1);
+
+
+	grid_pub = n.advertise<nav_msgs::OccupancyGrid>("/lidar_grid", 100, true);
+	cell_pub = n.advertise<nav_msgs::GridCells>("/lidar_cell", 100, true);
+
+    ros::Subscriber lidar_sub = n.subscribe("/velodyne_obstacles", 1000, sq_lidarCallback);
+
 
 	// pcd2grid(cloud_IN,map);
 	
