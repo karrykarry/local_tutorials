@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   tf
   message_filters
+  original_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -192,6 +193,11 @@ target_link_libraries(lidar2grid
 	${PCL_LIBRARIES}
 )
 
+add_executable(ovg node/ovg_node.cpp src/ovg.cpp)
+target_link_libraries(ovg
+	${catkin_LIBRARIES}
+	${PCL_LIBRARIES}
+)
 
 
 ## Rename C++ executable without prefix
