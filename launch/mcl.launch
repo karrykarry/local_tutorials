@@ -7,6 +7,8 @@
 		<remap from="velodyne_points" to="velodyne_obstacles" />
 
 	</node>
+	
+	<node name="pcd2grid" pkg="local_tutorials" type="pcd2grid" args="$(find maps)/d_kan_indoor_after.pcd" />		
 
 	<node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" />		
 

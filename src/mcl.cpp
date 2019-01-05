@@ -32,11 +32,12 @@ MCL::init_set(){
 	for(int i=0;i<pf_num;i++){
 	std::random_device rnd;
 	mt19937 mt(rnd());
-	uniform_real_distribution<double> score(-2.0,2.0);
+	uniform_real_distribution<double> score(-5.0,5.0);
+	uniform_real_distribution<double> yaw_score(-1.0,1.0);
 
 	pf.x = score(mt);
 	pf.y = score(mt);
-	pf.yaw = score(mt) / 2.0;
+	pf.yaw = yaw_score(mt) / 2.0;
 
 	pf.weight = 1.0/pf_num;
 	pf_cloud.push_back(pf);
@@ -54,9 +55,9 @@ MCL::pub(){
 	pf_array.poses.resize(pf_size);
 	
 	double lcl_x,lcl_y,lcl_yaw;
-	double weight_sum;
+	double weight_sum,ess;
 	lcl_x = lcl_y = lcl_yaw =  0.0;
-	weight_sum = 0.0;
+	weight_sum = ess = 0.0;
 
 	m_MCL_F->move_model(pf_cloud);
 	 // #pragma omp parallel for
@@ -73,21 +74,24 @@ MCL::pub(){
 		lcl_y += pf_geo.position.y*pf_cloud[i].weight;
 		lcl_yaw += pf_cloud[i].yaw*pf_cloud[i].weight;
 		weight_sum += pf_cloud[i].weight;
+		ess += pow(pf_cloud[i].weight,2); 
 	
 	}
+	cout << "ess:" << ess << endl;
+
 	pf_array.header.stamp = ros::Time::now();
 	pf_pub.publish(pf_array);
 
 
- if(cnt>50){	
- m_MCL_F->resample(pf_cloud,new_pf_cloud);
+	if(cnt>30 && cnt%5==0){	
+		m_MCL_F->resample(pf_cloud,new_pf_cloud);
 
- 	pf_cloud = new_pf_cloud; 
+		pf_cloud = new_pf_cloud; 
 
- 	new_pf_cloud.clear();
-// 	cout<<"aaaaaa"<<endl;
- }
- cnt++;
+		new_pf_cloud.clear();
+	}
+	cnt++;
+
 	lcl_x /= weight_sum;
 	lcl_y /= weight_sum;
 	lcl_yaw /= weight_sum;

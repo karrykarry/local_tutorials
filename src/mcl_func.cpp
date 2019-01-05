@@ -78,30 +78,38 @@ MCL_F::dt_calc(ros::Time current_time){
 
 
 void
-MCL_F::move_model(vector<Particle>& pf_cloud){
+MCL_F::move_model(vector<Particle>& pf_clouds){
 /*{{{*/
-	for(auto itr = pf_cloud.begin(); itr != pf_cloud.end(); ++itr){
-		itr->yaw += yaw;
+	std::random_device seed_gen;
+	std::default_random_engine engine(seed_gen());
 
-		while(itr->yaw > M_PI) itr->yaw -= 2*M_PI;
-		while(itr->yaw < -M_PI) itr->yaw += 2*M_PI;
+	std::normal_distribution<> nd_(1.0,0.2);	//平均1.0、標準偏差0.2で分布させる
 
-		itr->x += dist * cos(itr->yaw);// * cos(pitch);
-		itr->y += dist * sin(itr->yaw);// * cos(pitch);
+	for(auto& pf_cloud : pf_clouds){ 
+
+		pf_cloud.yaw += yaw * nd_(engine);
+
+		while(pf_cloud.yaw > M_PI) pf_cloud.yaw -= 2*M_PI;
+		while(pf_cloud.yaw < -M_PI) pf_cloud.yaw += 2*M_PI;
+
+		pf_cloud.x += dist * nd_(engine) * cos(pf_cloud.yaw);// * cos(pitch);
+		pf_cloud.y += dist * nd_(engine) * sin(pf_cloud.yaw);// * cos(pitch);
 	}
+
 	dist = yaw = 0;/*}}}*/
 }
 
 
 
 void 
-MCL_F::create_obstacle_map(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, nav_msgs::OccupancyGrid *map){
+MCL_F::create_obstacle_map(pcl::PointCloud<pcl::PointXYZI>::Ptr clouds, nav_msgs::OccupancyGrid *map){
 	
 	vector<int>	count((long(local_width/R) * long(local_height/R)), 0);
 
-	for(size_t i = 0; i < cloud->points.size(); i++){
-		int x = int((cloud->points[i].x - map->info.origin.position.x) / R);
-		int y = int((cloud->points[i].y - map->info.origin.position.y) / R);
+	for(auto cloud : clouds->points){
+
+		int x = int((cloud.x - map->info.origin.position.x) / R);
+		int y = int((cloud.y - map->info.origin.position.y) / R);
 		if((0 <= x && x < local_width/R) && (0 <= y && y < local_height/R)){
 			long num = x + y * map->info.width;
 			count[num] += 1; 
@@ -110,6 +118,8 @@ MCL_F::create_obstacle_map(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, nav_msgs:
 			}
 		}
 	}
+
+
 }
 
 
@@ -179,7 +189,6 @@ MCL_F::resample(vector<Particle> pf_cloud,vector<Particle>& new_pf_cloud){
 	uniform_real_distribution<double> ep_(0,weight_sum);
 	ep = ep_(mt);
 
-	cout<<"weight_sum"<<weight_sum<<",pt_size"<<pt_size<<endl;
     for(size_t i=0;i<pt_size;i++){
         ep = ep + ((double)weight_sum/pt_size);
 
@@ -208,9 +217,6 @@ MCL_F::resample(vector<Particle> pf_cloud,vector<Particle>& new_pf_cloud){
             }
         }
     }
-		cout<<"new_pf_size"<<new_pf_cloud.size()<<endl;
-		say();
-		cout<<"weight_sum:"<<weight_sum<<endl;
 }
 
 void
@@ -223,24 +229,3 @@ void
 MCL_F::say(){
 		cout<<"weight_array"<<weight_array.size()<<endl;
 }
-
-// void
-// MCL_F::measurement_model(double x,double y,double yaw){
-// 	
-//
-// 	Eigen::Affine3f transform = Eigen::Affine3f::Identity();
-//
-// 	transform.rotate (Eigen::AngleAxisf (yaw, Eigen::Vector3f::UnitZ()));
-//
-// 	pcl::PointCloud<pcl::PointXYZI>::Ptr transformed_cloud (new pcl::PointCloud<pcl::PointXYZI>);
-// 	pcl::transformPointCloud (*lidar_cloud, *transformed_cloud, transform);
-//
-// 	create_obstacle_map(transformed_cloud,&local_map);
-//
-// 	local_map.header.stamp = ros::Time::now();
-//    	local_map.header.frame_id = "/map";
-//
-// 	grid_pub.publish(local_map);
-//
-//
-// }

@@ -13,14 +13,9 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
-
-// #include <pcl/io/pcd_io.h>
-// #include <pcl/io/ply_io.h>
-// #include <pcl/point_cloud.h>
-// #include <pcl/console/parse.h>
 #include <pcl/common/transforms.h>
-// #include <pcl/visualization/pcl_visualizer.h>
 
+#include<random>
 
 
 class MCL;
@@ -57,7 +52,7 @@ class MCL_F{
 		double weight_sum;
 
 		double dt_calc(ros::Time current_time);
-		void create_obstacle_map(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud,nav_msgs::OccupancyGrid *local_map);
+		void create_obstacle_map(pcl::PointCloud<pcl::PointXYZI>::Ptr clouds,nav_msgs::OccupancyGrid *local_map);
 
 	public:
 		MCL_F(MCL* mp_MCL);
@@ -65,8 +60,7 @@ class MCL_F{
 		void syncMsgsCB(const nav_msgs::OdometryConstPtr &odom, const sensor_msgs::ImuConstPtr &imu);
 		void gridmapCallback(const nav_msgs::OccupancyGridConstPtr &map_msg);
 		void lidarCallback(const sensor_msgs::PointCloud2ConstPtr &input);
-		void move_model(vector<Particle>& pf_cloud);
-		// void measurement_model(double x,double y,double yaw);
+		void move_model(vector<Particle>& pf_clouds);
 		double measurement_model(double x,double y,double yaw);
 
 		void resample(vector<Particle> pf_cloud,vector<Particle>& new_pf_cloud);
