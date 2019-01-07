@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+
+	<node name="vicon" pkg="local_tutorials" type="vicon_result" output="screen" >
+		<remap from="/vicon_topic" to="/vicon/infant_velodyne/infant_velodyne" />
+		
+	</node>
+
+</launch>
+
+
+

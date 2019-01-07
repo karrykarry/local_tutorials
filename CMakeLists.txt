@@ -200,6 +200,12 @@ target_link_libraries(ovg
 )
 
 
+add_executable(vicon_result src/vicon_result.cpp)
+target_link_libraries(vicon_result
+	${catkin_LIBRARIES}
+	${PCL_LIBRARIES}
+)
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
