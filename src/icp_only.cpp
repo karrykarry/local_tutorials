@@ -159,7 +159,7 @@ Icp::calc_rpy(Eigen::Matrix4f a){
 
 	cout<<"roll:"<<roll<<",pitch:"<<pitch<<",yaw:"<<yaw<<endl;
 	cout<<"x:"<<a(0, 3)<<",y:"<<a(1, 3)<<",z:"<<a(2, 3)<<endl;
-	coput<<"yaw_"<<yaw_<<endl;
+	cout<<"yaw_"<<yaw_<<endl;
 
 	std_msgs::Float64 data;
 
@@ -167,5 +167,5 @@ Icp::calc_rpy(Eigen::Matrix4f a){
 
 	data.data = yaw_;
 
-	pub.publish(yaw);
+	pub.publish(data);
 }
