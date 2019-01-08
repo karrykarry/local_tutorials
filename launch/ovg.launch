@@ -11,7 +11,7 @@
 		<param name="max_z_range" value="10.0"/>
 		<param name="voxel_size" value="0.2"/>
 		<param name="SKIP" value="5"/>
-		<param name="STEP" value="30"/>
+		<param name="STEP" value="10"/>
 		<param name="probability_threshold" value="0.7"/>
 		<param name="save_raw_flag" value="0"/>
 		<param name="debug_pub_flag" value="0"/>

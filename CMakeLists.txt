@@ -206,6 +206,14 @@ target_link_libraries(vicon_result
 	${PCL_LIBRARIES}
 )
 
+
+add_executable(icp_only src/icp_only.cpp)
+target_link_libraries(icp_only
+	${catkin_LIBRARIES}
+	${PCL_LIBRARIES}
+)
+
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
