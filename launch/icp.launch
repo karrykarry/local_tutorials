@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+
+	<node name="icp_without_human" pkg="local_tutorials" type="icp_only" output="screen" >
+		<remap from="/velodyne_points" to="/rm_cluster/removed_points" />	
+		<remap from="/yaw/icp" to="/yaw/icp_removed_human" />	
+	</node>
+
+	<!-- <node name="icp" pkg="local_tutorials" type="icp_only" output="screen" > -->
+	<!-- </node> -->
+
+</launch>
+
+
+

@@ -68,9 +68,9 @@ Icp::Icp(ros::NodeHandle n,ros::NodeHandle private_nh_) :
 	after_cloud(new pcl::PointCloud<pcl::PointXYZI>)		//icp後の点群
 {
 	pc_sub = n.subscribe("/velodyne_points", 2, &Icp::callback, this);
-	buffer_pub = n.advertise<sensor_msgs::PointCloud2>("/buffer", 10);
-	src_pub = n.advertise<sensor_msgs::PointCloud2>("/src", 10);
-	out_pub = n.advertise<sensor_msgs::PointCloud2>("/out", 10);
+	// buffer_pub = n.advertise<sensor_msgs::PointCloud2>("/buffer", 10);
+	// src_pub = n.advertise<sensor_msgs::PointCloud2>("/src", 10);
+	// out_pub = n.advertise<sensor_msgs::PointCloud2>("/out", 10);
 	pub = n.advertise<std_msgs::Float64>("/yaw/icp", 10);
 
 	cout<<"icp start"<<endl;
@@ -118,24 +118,24 @@ Icp::matching(pcl::PointCloud<pcl::PointXYZI>::Ptr tgt_cloud,pcl::PointCloud<pcl
 	calc_rpy(a);
 
 
-	sensor_msgs::PointCloud2 buffer_pc,src_pc,out_pc;
-
-	pcl::toROSMsg(*tgt_cloud,buffer_pc);
-	pcl::toROSMsg(*src_cloud,src_pc);
-	pcl::toROSMsg(*after_cloud,out_pc);
-	
-	buffer_pc.header.frame_id  = "velodyne";	
-	buffer_pc.header.stamp  = t;
-	buffer_pub.publish(buffer_pc);
-
-
-	src_pc.header.frame_id  = "velodyne";	
-	src_pc.header.stamp  = t;
-	src_pub.publish(src_pc);
-
-	out_pc.header.frame_id  = "velodyne";	
-	out_pc.header.stamp  = t;
-	out_pub.publish(out_pc);
+	// sensor_msgs::PointCloud2 buffer_pc,src_pc,out_pc;
+    //
+	// pcl::toROSMsg(*tgt_cloud,buffer_pc);
+	// pcl::toROSMsg(*src_cloud,src_pc);
+	// pcl::toROSMsg(*after_cloud,out_pc);
+	//
+	// buffer_pc.header.frame_id  = "velodyne";	
+	// buffer_pc.header.stamp  = t;
+	// buffer_pub.publish(buffer_pc);
+    //
+    //
+	// src_pc.header.frame_id  = "velodyne";	
+	// src_pc.header.stamp  = t;
+	// src_pub.publish(src_pc);
+    //
+	// out_pc.header.frame_id  = "velodyne";	
+	// out_pc.header.stamp  = t;
+	// out_pub.publish(out_pc);
 
 
 	// buffer_cloud = after_cloud;
