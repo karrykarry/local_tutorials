@@ -172,7 +172,7 @@ target_link_libraries(odometer
 )
 
 
-add_executable(mcl node/mcl_node.cpp src/mcl.cpp src/mcl_func.cpp)
+add_executable(mcl node/mcl_node.cpp src/mcl/mcl.cpp src/mcl/mcl_func.cpp)
 add_dependencies(mcl local_tutorials_gencfg)
 target_link_libraries(mcl
 	${catkin_LIBRARIES}
@@ -207,12 +207,17 @@ target_link_libraries(vicon_result
 )
 
 
-add_executable(icp_only src/icp_only.cpp)
+add_executable(icp_only src/alignment/icp_only.cpp)
 target_link_libraries(icp_only
 	${catkin_LIBRARIES}
 	${PCL_LIBRARIES}
 )
 
+add_executable(translation_matching node/translation_node.cpp src/alignment/translation_matching.cpp)
+target_link_libraries(translation_matching
+	${catkin_LIBRARIES}
+	${PCL_LIBRARIES}
+)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

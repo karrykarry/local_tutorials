@@ -1,4 +1,7 @@
-
+/*
+ * icpのみによる位置合わせ
+ *
+ */
 #include <ros/ros.h>
 #include <string>
 #include <vector>
