@@ -7,6 +7,7 @@
 #include <iostream>
 #include <sensor_msgs/PointCloud.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/point_cloud_conversion.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Point.h>
 #include <std_msgs/Float64.h>
@@ -44,25 +45,35 @@ class Icp{
 	tf::TransformBroadcaster tfbroadcaster_;
 
 	pcl::PointCloud<pcl::PointXYZI>::Ptr input_cloud;
+	pcl::PointCloud<pcl::PointXYZI>::Ptr input_cloud_;
 	pcl::PointCloud<pcl::PointXYZI>::Ptr buffer_cloud;
 	pcl::PointCloud<pcl::PointXYZI>::Ptr after_cloud;
 
+	vector<double> buffer_angle_;
 	vector<double> buffer_pose_;
 	tf::StampedTransform buffer_transform_pose;
 	tf::StampedTransform buffer_transform;
 	tf::StampedTransform base_link_transform;
 	geometry_msgs::PoseStamped rota_pose;
+	sensor_msgs::PointCloud buffer_point;
 	nav_msgs::Odometry odom;
+	double r,p,y;//出力値
+
+	ros::Time sub_t;
+
+	double yaw_judge;
+
 
 	public:
 	Icp(ros::NodeHandle n,ros::NodeHandle private_nh);
 	void callback(const sensor_msgs::PointCloud2::Ptr msg);
-	void matching(pcl::PointCloud<pcl::PointXYZI>::Ptr tgt_cloud,pcl::PointCloud<pcl::PointXYZI>::Ptr src_cloud,ros::Time t);
+	
+	void matching(pcl::PointCloud<pcl::PointXYZI>::Ptr tgt_cloud,pcl::PointCloud<pcl::PointXYZI>::Ptr src_cloud,vector<double> dpose_,vector<double> dangle_);
 	void calc_rpy(Eigen::Matrix4f a);
 
 
 	void map2ienage(vector<double>& dpose,ros::Time t);
-	void map2transform(ros::Time t);
+	void map2transform(vector<double>& dangle_,ros::Time t);
 	double diffdist(vector<double> dpose_);
 
 	void pub_pc(pcl::PointCloud<pcl::PointXYZI>::Ptr pub_cloud,ros::Time t);
