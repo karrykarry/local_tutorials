@@ -70,7 +70,8 @@ Icp::Icp(ros::NodeHandle n,ros::NodeHandle private_nh_) :
 	buffer_cloud(new pcl::PointCloud<pcl::PointXYZI>),	//前の点群
 	after_cloud(new pcl::PointCloud<pcl::PointXYZI>)		//icp後の点群
 {
-	pc_sub = n.subscribe("/velodyne_points", 2, &Icp::callback, this);
+	// pc_sub = n.subscribe("/velodyne_points", 2, &Icp::callback, this);
+	pc_sub = n.subscribe("/PointCloud/static", 2, &Icp::callback, this);
 	// buffer_pub = n.advertise<sensor_msgs::PointCloud2>("/buffer", 10);
 	// src_pub = n.advertise<sensor_msgs::PointCloud2>("/src", 10);
 	// out_pub = n.advertise<sensor_msgs::PointCloud2>("/out", 10);
@@ -85,7 +86,7 @@ Icp::callback(const sensor_msgs::PointCloud2::Ptr msg){
 
 	static int cnt = 0;
 
-	if(cnt%3==0){
+	if(cnt%1==0){
 		ros::Time t = msg->header.stamp;
 
 		*buffer_cloud = *input_cloud;
