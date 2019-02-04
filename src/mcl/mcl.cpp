@@ -101,8 +101,6 @@ MCL::pub(){
 
 	lcl_pub_(lcl_x,lcl_y,lcl_yaw);
 	
-
-
 }
 
 

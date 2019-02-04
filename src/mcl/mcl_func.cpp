@@ -47,8 +47,6 @@ MCL_F::gridmapCallback(const nav_msgs::OccupancyGridConstPtr &map_msg){
 	local_map.info.resolution = R;
 	local_map.info.origin.position.x = (min_x - local_width)/2.0; 
 	local_map.info.origin.position.y = (min_y - local_height)/2.0;
-
-
 }
 
 void 
