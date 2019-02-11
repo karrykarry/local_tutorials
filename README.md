@@ -1,4 +1,4 @@
-# .local_tutorials
+# local_tutorials
 
 ## Requirement
 - ros (kinetic)
@@ -9,7 +9,7 @@
 
 ```shell
 cd ~/catkin_ws/src/
-git clone https://github.com/ros-drivers/velodyne
+git clone https://github.com/karrykarry/local_tutorials
 cd ~/catkin_ws
 catkin_make
 ```
