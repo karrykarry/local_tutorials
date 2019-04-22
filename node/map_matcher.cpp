@@ -22,9 +22,18 @@ int main(int argc, char* argv[])
 	priv_nh.getParam("map_voxel_size",map_voxel_size);
 	map_matcher.map_read(map_file,map_voxel_size);
 	
+	double roll=0;
+	double pitch=0; 
+	double yaw=0; 
+	double x=0; 
+	double y=0; 
+	double z=0;
+
 	ros::Rate loop(10);
 	while(ros::ok()){
-
+		map_matcher.aligner_ndt(roll,pitch,yaw,x,y,z);
+		map_matcher.lcl_publisher(roll,pitch,yaw,x,y,z);
+		
 		loop.sleep();
 		ros::spinOnce();
 	}
