@@ -10,6 +10,9 @@ Dead_rec::Dead_rec(ros::NodeHandle n,ros::NodeHandle priv_nh):
 
 	odom_pub = n.advertise<nav_msgs::Odometry>("/odometer",100);
 
+	priv_nh.getParam("parent_frame",parent_frame);
+	priv_nh.getParam("child_frame",child_frame);
+	
 	lcl.header.frame_id = "/map";
 	lcl.child_frame_id = "/base_link";
 }
@@ -71,5 +74,5 @@ Dead_rec::pub(ros::Time current_time,geometry_msgs::Quaternion quat){
 	q.setRPY(0, 0, yaw);
 
 	transform.setRotation(q);
-	br.sendTransform(tf::StampedTransform(transform, current_time, "/map", "/matching_base_link"));
+	br.sendTransform(tf::StampedTransform(transform, current_time, parent_frame, child_frame));
 }
