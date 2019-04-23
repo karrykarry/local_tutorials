@@ -2,8 +2,8 @@
 <launch>
 
 	<node name="odometer" pkg="local_tutorials" type="odometer" output="screen"  >		
-
-		<!-- <remap from="velodyne_obstacles" to="velodyne_obstacles"/> -->
-		<!-- <remap from="velodyne_clear" to="velodyne_clear"/> -->
+		<param name="parent_frame" value="/map" />
+		<!-- <param name="child_frame" value="/matching_base_link" /> -->
+		<param name="child_frame" value="/gyrodometry" />
 	</node>
 </launch>

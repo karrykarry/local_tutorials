@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+	
+	<node name="map_matcher_main" pkg="local_tutorials" type="map_matcher_main" output="screen" >
+		<param name="from_id" value="/map" />
+		<!-- <param name="to_id" value="/matching_base_link" /> -->
+		<param name="to_id" value="/gyrodometry" />	
+	</node>
+</launch>
+
+
+

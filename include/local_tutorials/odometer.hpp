@@ -33,6 +33,8 @@ class Dead_rec{
 		ros::Time last_time;
 		double x,y,yaw;
 		bool flag;
+		string parent_frame;
+		string child_frame;
 
 		double dt_calc(ros::Time current_time);
 		void pub(ros::Time current_time,geometry_msgs::Quaternion quat);

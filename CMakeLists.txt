@@ -67,11 +67,10 @@ endif()
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  FILES
+  OdoUpdate.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -81,10 +80,10 @@ endif()
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   geometry_msgs#   nav_msgs#   sensor_msgs#   std_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  geometry_msgs#   nav_msgs#   sensor_msgs#   std_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -227,6 +226,11 @@ target_link_libraries(map_matcher
 	${PCL_LIBRARIES}
 )
 
+add_executable(map_matcher_main node/map_matcher_main.cpp src/alignment/map_matching_tf.cpp)
+target_link_libraries(map_matcher_main
+	${catkin_LIBRARIES}
+	${PCL_LIBRARIES}
+)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
