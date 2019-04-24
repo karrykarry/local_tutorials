@@ -1,5 +1,5 @@
-/*
- *
+/* odometryのやりとりはこっち
+ * tf_broadcastする
  */
 #include"map_matching_tf.hpp"
 
@@ -49,6 +49,8 @@ Map_tf::debug_publisher(){
 	tf_debug.header.stamp = ros::Time::now();
 	tf_debug.header.frame_id = "/map";
 
+	tf_publisher(tf_debug);
+
 	debug_pub.publish(tf_debug);
 }
 
@@ -67,4 +69,17 @@ Map_tf::odo_request(nav_msgs::Odometry& ndt){
 		cout<<"\x1b[31m"<<"-----No Update-----"<<"\x1b[m\r"<<endl;
 		return;
 	}
+}
+
+void
+Map_tf::tf_publisher(nav_msgs::Odometry after_odo){
+
+	broad_transform.setOrigin( tf::Vector3( 
+	after_odo.pose.pose.position.x, after_odo.pose.pose.position.y, after_odo.pose.pose.position.z));
+	
+	tf::Quaternion q;
+	quaternionMsgToTF(after_odo.pose.pose.orientation,q);
+
+	broad_transform.setRotation(q);
+	br.sendTransform(tf::StampedTransform(broad_transform, after_odo.header.stamp, "/map", "/matching_base_link"));
 }

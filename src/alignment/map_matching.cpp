@@ -7,77 +7,29 @@
 
 
 Matcher::Matcher(ros::NodeHandle n,ros::NodeHandle private_nh_) :
-	map_limit(20.0),x_now(0.0),y_now(0.0),
+	map_limit(20.0),
 	lidar_cloud(new pcl::PointCloud<pcl::PointXYZI>),		//今もらってきたレーザの点群
 	low_lidar_cloud(new pcl::PointCloud<pcl::PointXYZI>),		//今もらってきたレーザの点群
 	map_cloud(new pcl::PointCloud<pcl::PointXYZI>),		//icp後の点群
 	local_map_cloud(new pcl::PointCloud<pcl::PointXYZI>)		//icp後の点群
 {
-	pc_sub = n.subscribe("/velodyne_obstacles", 100, &Matcher::lidarcallback, this);
-	// buffer_pub = n.advertise<sensor_msgs::PointCloud2>("/buffer", 10);
 	pc_pub = n.advertise<sensor_msgs::PointCloud2>("/vis/ndt", 10);
 	map_pub = n.advertise<sensor_msgs::PointCloud2>("/vis/map", 10, true);
-	lcl_pub = n.advertise<nav_msgs::Odometry>("/ndt_odometry/vis", 10);
 
+	pc_sub = n.subscribe("/velodyne_obstacles", 100, &Matcher::lidarcallback, this);
 	service = n.advertiseService("odometry/ndt", &Matcher::odo_response, this);
-
+	
 	ndt.setTransformationEpsilon(0.001);
 	ndt.setStepSize(0.1);
 	ndt.setResolution(1.0);//1.0 change 05/09
 	ndt.setMaximumIterations(35);
 
-
-}
-
-
-bool 
-Matcher::odo_response(local_tutorials::OdoUpdate::Request  &req,
-         local_tutorials::OdoUpdate::Response &res)
-{
-  res.after = req.before;
-  res.after.position.x = req.before.position.x * 2;
-
-  cout<<"ndt --> odometry"<<endl;
-
-  return true;
+	private_nh_.getParam("voxel_size",voxel_size);
 }
 
 
 void
-Matcher::lidarcallback(const sensor_msgs::PointCloud2::Ptr msg){
-
-	low_lidar_cloud->points.clear();
-
-	pcl::fromROSMsg(*msg,*lidar_cloud);
-
-	for(pcl::PointXYZI temp_point :lidar_cloud->points){
-		
-		if((map_limit * (-1) + x_now <= temp_point.x && temp_point.x  <= map_limit + x_now) && (map_limit *(-1) + y_now <= temp_point.y && temp_point.y <= map_limit + y_now) ){
-	 
-			low_lidar_cloud->points.push_back(temp_point);
-		}
-	}
-	//kokode
-	//voxel NG
-}
-
-
-
-void
-Matcher::pc_publisher(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud,string frame_id){
-
-	pcl::toROSMsg(*cloud , vis_pc);           
-	
-	vis_pc.header.stamp = ros::Time::now(); //laserのframe_id
-	vis_pc.header.frame_id = frame_id;
-
-	pc_pub.publish(vis_pc);
-}
-
-
-
-void
-Matcher::map_read(string filename, double voxel_size){
+Matcher::map_read(string filename){
 
 	pcl::PointCloud<pcl::PointXYZI>::Ptr low_map_cloud (new pcl::PointCloud<pcl::PointXYZI>);
 
@@ -104,36 +56,62 @@ Matcher::map_read(string filename, double voxel_size){
 	cout<<"\x1b[31m"<<"map read finish"<<filename<<"\x1b[m\r"<<endl;
 }
 
-//mapの一部を算出
-void 
-Matcher::local_map(pcl::PointCloud<pcl::PointXYZI>::Ptr input_cloud)
-{
-    //limit_laserを設定
-	local_map_cloud->points.clear();
 
-	for(pcl::PointXYZI temp_point :input_cloud->points){
+
+
+
+void
+Matcher::lidarcallback(const sensor_msgs::PointCloud2::Ptr msg){
+
+	low_lidar_cloud->points.clear();
+
+	pcl::fromROSMsg(*msg,*lidar_cloud);
+
+	for(pcl::PointXYZI temp_point :lidar_cloud->points){
 		
-		if((map_limit * (-1) + x_now <= temp_point.x && temp_point.x  <= map_limit + x_now) && (map_limit *(-1) + y_now <= temp_point.y && temp_point.y <= map_limit + y_now) ){
+		// if((map_limit * (-1) + x_now <= temp_point.x && temp_point.x  <= map_limit + x_now) && (map_limit *(-1) + y_now <= temp_point.y && temp_point.y <= map_limit + y_now) ){
+		if((map_limit * (-1) <= temp_point.x && temp_point.x  <= map_limit) && (map_limit *(-1) <= temp_point.y && temp_point.y <= map_limit) ){
 	 
-			local_map_cloud->points.push_back(temp_point);
+			low_lidar_cloud->points.push_back(temp_point);
 		}
 	}
+	//kokode
+	//voxel NG
 }
 
 
 
+
+bool 
+Matcher::odo_response(local_tutorials::OdoUpdate::Request  &req,
+         local_tutorials::OdoUpdate::Response &res)
+{
+
+	res.after = aligner_ndt(req.before);	
+
+	// cout<<"NDT Matching --> update odometry"<<endl;
+
+	return true;
+}
+
 //位置合わせ
-void
-Matcher::aligner_ndt(double& roll, double& pitch, double& yaw, double& x, double& y, double& z,double voxel_size){
-	
+geometry_msgs::Pose 
+Matcher::aligner_ndt(geometry_msgs::Pose before_pose){
+
+	double roll,pitch,yaw;
+	tf::Quaternion q;
+	quaternionMsgToTF(before_pose.orientation,q);
+	tf::Matrix3x3(q).getRPY(roll,pitch,yaw);
+
 	Eigen::Matrix3f rot;
-	rot = Eigen::AngleAxisf(roll*(-1), Eigen::Vector3f::UnitX()) * Eigen::AngleAxisf(pitch*(-1), Eigen::Vector3f::UnitY()) * Eigen::AngleAxisf(yaw, Eigen::Vector3f::UnitZ());
+	// rot = Eigen::AngleAxisf(roll*(-1), Eigen::Vector3f::UnitX()) * Eigen::AngleAxisf(pitch*(-1), Eigen::Vector3f::UnitY()) * Eigen::AngleAxisf(yaw, Eigen::Vector3f::UnitZ());
+	rot = Eigen::AngleAxisf(yaw, Eigen::Vector3f::UnitZ());
     
-	Eigen::Translation3f init_translation (x, y, z);
+	Eigen::Translation3f init_translation (before_pose.position.x, before_pose.position.y, 0);
     
 	Eigen::Matrix4f transform = (rot * init_translation).matrix ();
     
-	local_map(map_cloud);
+	local_map(map_cloud,before_pose.position.x, before_pose.position.y);
 	
     pcl::ApproximateVoxelGrid<pcl::PointXYZI> approximate_voxel_filter;
 	pcl::PointCloud<pcl::PointXYZI>::Ptr limit_lidar_cloud (new pcl::PointCloud<pcl::PointXYZI>);
@@ -149,7 +127,7 @@ Matcher::aligner_ndt(double& roll, double& pitch, double& yaw, double& x, double
 	ndt.setInputSource(limit_lidar_cloud);	//lidar
 	ndt.align (*answer_cloud, transform);			//移動後のlidar
 	// ndt.align (*answer_cloud);			//faster
-	pc_publisher(answer_cloud,"/velodyne");
+	// pc_publisher(answer_cloud,"/velodyne");
 
  ////answer
  	Eigen::Matrix4f a;
@@ -163,33 +141,65 @@ Matcher::aligner_ndt(double& roll, double& pitch, double& yaw, double& x, double
  			static_cast<double>(a(2, 0)), static_cast<double>(a(2, 1)), static_cast<double>(a(2, 2)));
 
  	mat_l.getRPY(l_roll, l_pitch, l_yaw, 1);
-	
-	x = a(1, 0);
-	y = a(2, 0);
-	z = a(3, 0);
-	roll = l_roll;
-	pitch = l_pitch;
-	yaw = l_yaw;
-}
 
-void
-Matcher::lcl_publisher(double roll, double pitch, double yaw, double x, double y, double z){
 
-	nav_msgs::Odometry lcl_ndt;
-		
-	lcl_ndt.pose.pose.position.x = x;
-	lcl_ndt.pose.pose.position.y = y;
-	lcl_ndt.pose.pose.position.z = z;
+	std::cout << "Result : " << ndt.getFinalTransformation()<<endl;
+
+
+	tf::Quaternion quat = tf::createQuaternionFromRPY(l_roll,l_pitch,l_yaw);
 	
-	tf::Quaternion quat=tf::createQuaternionFromRPY(roll,pitch,yaw);
 	geometry_msgs::Quaternion geometry_quat;
 	quaternionTFToMsg(quat, geometry_quat);
-	lcl_ndt.pose.pose.orientation = geometry_quat;	
+
+
+
+	geometry_msgs::Pose after_pose;
+
+	after_pose.position.x = a(0, 3);
+	after_pose.position.y = a(1, 3);
+	after_pose.position.z = 0.0;
+	// after_pose.orientation = geometry_quat;
 	
-	lcl_ndt.header.stamp = ros::Time::now();
-	lcl_ndt.header.frame_id = "/map";
-
-	lcl_pub.publish(lcl_ndt);
-
+	after_pose.orientation.x = 0.0;
+	after_pose.orientation.y = 0.0;
+	after_pose.orientation.z = sin(l_yaw*0.5);
+	after_pose.orientation.w = cos(l_yaw*0.5);
+	
+	
+	return after_pose;
 }
+
+
+//mapの一部を算出
+void 
+Matcher::local_map(pcl::PointCloud<pcl::PointXYZI>::Ptr input_cloud,double x_now,double y_now)
+{
+    //limit_laserを設定
+	local_map_cloud->points.clear();
+
+	for(pcl::PointXYZI temp_point :input_cloud->points){
+		
+		if((map_limit * (-1) + x_now <= temp_point.x && temp_point.x  <= map_limit + x_now) && (map_limit *(-1) + y_now <= temp_point.y && temp_point.y <= map_limit + y_now) ){
+	 
+			local_map_cloud->points.push_back(temp_point);
+		}
+	}
+}
+
+
+
+
+
+void
+Matcher::pc_publisher(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud,string frame_id){
+
+	sensor_msgs::PointCloud2 vis_pc;
+	pcl::toROSMsg(*cloud , vis_pc);           
+	
+	vis_pc.header.stamp = ros::Time::now(); //laserのframe_id
+	vis_pc.header.frame_id = frame_id;
+
+	pc_pub.publish(vis_pc);
+}
+
 

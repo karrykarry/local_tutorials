@@ -27,7 +27,8 @@ class Map_tf{
 		local_tutorials::OdoUpdate srv;
 		void debug_publisher();
 		void odo_request(nav_msgs::Odometry& ndt);
-	
+		void tf_publisher(nav_msgs::Odometry after_odo);
+
 	public:
 		Map_tf(ros::NodeHandle n,ros::NodeHandle private_nh_);
 		void listen_tf(string from_id, string to_id);

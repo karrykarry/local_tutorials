@@ -1,6 +1,6 @@
-/* particle.cpp
+/* map_matcher_main.cpp
  *
- * 2018.12.21
+ * 2019.04.24
  *
  * author : R.Kusakari
  *
@@ -24,8 +24,8 @@ int main(int argc, char* argv[])
 
 	ros::Rate loop(10);
 	while(ros::ok()){
-		// map_tf.listen_tf("/velodyne","/map");
 		map_tf.listen_tf(from_id,to_id);
+		
 		loop.sleep();
 		ros::spinOnce();
 	}
