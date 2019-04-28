@@ -5,5 +5,7 @@
 		<param name="parent_frame" value="/map" />
 		<!-- <param name="child_frame" value="/matching_base_link" /> -->
 		<param name="child_frame" value="/gyrodometry" />
+		
+		<remap from="/odom" to="/tinypower/odom" />
 	</node>
 </launch>

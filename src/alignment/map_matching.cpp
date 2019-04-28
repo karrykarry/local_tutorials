@@ -69,14 +69,12 @@ Matcher::lidarcallback(const sensor_msgs::PointCloud2::Ptr msg){
 
 	for(pcl::PointXYZI temp_point :lidar_cloud->points){
 		
-		// if((map_limit * (-1) + x_now <= temp_point.x && temp_point.x  <= map_limit + x_now) && (map_limit *(-1) + y_now <= temp_point.y && temp_point.y <= map_limit + y_now) ){
 		if((map_limit * (-1) <= temp_point.x && temp_point.x  <= map_limit) && (map_limit *(-1) <= temp_point.y && temp_point.y <= map_limit) ){
 	 
 			low_lidar_cloud->points.push_back(temp_point);
 		}
 	}
-	//kokode
-	//voxel NG
+	//ここでvoxel化かけると重くなる(処理に関係ない点群をvoxel化するため)
 }
 
 
@@ -89,7 +87,7 @@ Matcher::odo_response(local_tutorials::OdoUpdate::Request  &req,
 
 	res.after = aligner_ndt(req.before);	
 
-	// cout<<"NDT Matching --> update odometry"<<endl;
+	cout<<"NDT Matching --> update odometry\r"<<flush;
 
 	return true;
 }
@@ -102,15 +100,13 @@ Matcher::aligner_ndt(geometry_msgs::Pose before_pose){
 	tf::Quaternion q;
 	quaternionMsgToTF(before_pose.orientation,q);
 	tf::Matrix3x3(q).getRPY(roll,pitch,yaw);
-
-	Eigen::Matrix3f rot;
-	// rot = Eigen::AngleAxisf(roll*(-1), Eigen::Vector3f::UnitX()) * Eigen::AngleAxisf(pitch*(-1), Eigen::Vector3f::UnitY()) * Eigen::AngleAxisf(yaw, Eigen::Vector3f::UnitZ());
-	rot = Eigen::AngleAxisf(yaw, Eigen::Vector3f::UnitZ());
+ 
+	Eigen::AngleAxisf rot (yaw, Eigen::Vector3f::UnitZ());
+	Eigen::Translation3f init_translation (before_pose.position.x, before_pose.position.y, -1.3);
     
-	Eigen::Translation3f init_translation (before_pose.position.x, before_pose.position.y, 0);
+	Eigen::Matrix4f transform = (init_translation * rot).matrix (); //行列の掛け算には注意
     
-	Eigen::Matrix4f transform = (rot * init_translation).matrix ();
-    
+	
 	local_map(map_cloud,before_pose.position.x, before_pose.position.y);
 	
     pcl::ApproximateVoxelGrid<pcl::PointXYZI> approximate_voxel_filter;
@@ -123,11 +119,12 @@ Matcher::aligner_ndt(geometry_msgs::Pose before_pose){
 	
 	pcl::PointCloud<pcl::PointXYZI>::Ptr answer_cloud (new pcl::PointCloud<pcl::PointXYZI>);
 	
+	
 	ndt.setInputTarget(local_map_cloud);	//map
 	ndt.setInputSource(limit_lidar_cloud);	//lidar
 	ndt.align (*answer_cloud, transform);			//移動後のlidar
 	// ndt.align (*answer_cloud);			//faster
-	// pc_publisher(answer_cloud,"/velodyne");
+	pc_publisher(answer_cloud,"/map");
 
  ////answer
  	Eigen::Matrix4f a;
@@ -142,29 +139,20 @@ Matcher::aligner_ndt(geometry_msgs::Pose before_pose){
 
  	mat_l.getRPY(l_roll, l_pitch, l_yaw, 1);
 
-
-	std::cout << "Result : " << ndt.getFinalTransformation()<<endl;
-
+	// cout << "Result : " << endl;
+	// cout << ndt.getFinalTransformation()<<endl;
 
 	tf::Quaternion quat = tf::createQuaternionFromRPY(l_roll,l_pitch,l_yaw);
 	
 	geometry_msgs::Quaternion geometry_quat;
 	quaternionTFToMsg(quat, geometry_quat);
 
-
-
 	geometry_msgs::Pose after_pose;
 
 	after_pose.position.x = a(0, 3);
 	after_pose.position.y = a(1, 3);
 	after_pose.position.z = 0.0;
-	// after_pose.orientation = geometry_quat;
-	
-	after_pose.orientation.x = 0.0;
-	after_pose.orientation.y = 0.0;
-	after_pose.orientation.z = sin(l_yaw*0.5);
-	after_pose.orientation.w = cos(l_yaw*0.5);
-	
+	after_pose.orientation = geometry_quat;
 	
 	return after_pose;
 }
@@ -196,7 +184,7 @@ Matcher::pc_publisher(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud,string frame_id
 	sensor_msgs::PointCloud2 vis_pc;
 	pcl::toROSMsg(*cloud , vis_pc);           
 	
-	vis_pc.header.stamp = ros::Time::now(); //laserのframe_id
+	vis_pc.header.stamp = ros::Time::now();
 	vis_pc.header.frame_id = frame_id;
 
 	pc_pub.publish(vis_pc);

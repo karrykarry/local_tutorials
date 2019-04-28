@@ -1,5 +1,6 @@
 /* odometryのやりとりはこっち
  * tf_broadcastする
+ * map->matching_base_link
  */
 #include"map_matching_tf.hpp"
 
@@ -62,7 +63,6 @@ Map_tf::odo_request(nav_msgs::Odometry& ndt){
 	{
 		cout<<"odometry --> NDT Matching"<<endl; 
 		ndt.pose.pose = srv.response.after;
-
 	}
 	else
 	{
