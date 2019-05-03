@@ -221,12 +221,14 @@ target_link_libraries(translation_matching
 
 
 add_executable(map_matcher node/map_matcher.cpp src/alignment/map_matching.cpp)
+add_dependencies(map_matcher local_tutorials_generate_messages_cpp)
 target_link_libraries(map_matcher
 	${catkin_LIBRARIES}
 	${PCL_LIBRARIES}
 )
 
 add_executable(map_matcher_main node/map_matcher_main.cpp src/alignment/map_matching_tf.cpp)
+add_dependencies(map_matcher_main local_tutorials_generate_messages_cpp)
 target_link_libraries(map_matcher_main
 	${catkin_LIBRARIES}
 	${PCL_LIBRARIES}
