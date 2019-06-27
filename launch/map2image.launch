@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+	<node name="map2image" pkg="local_tutorials" type="map2image" output="screen" >
+		<param name="map_file" value="/home/amsl/ros_catkin_ws/maps/d_kan_indoor.pcd" />
+		<param name="width_pixel" value="512" />
+		<param name="height_pixel" value="128" />
+		<param name="map_limit" value= "20" />
+		<param name="pre_path" value="/home/amsl/Pictures/GAN/map2depth/map2depth" />
+		<!-- <param name="map_file" value="/home/amsl/ros_catkin_ws/maps/d_kan_indoor2around_.pcd" /> -->
+	</node>
+</launch>
+
+
+

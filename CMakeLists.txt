@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
+find_package(OpenCV 3 REQUIRED)
 find_package(PCL 1.8.0 REQUIRED)
 find_package(OpenMP)
 if(OPENMP_FOUND)
@@ -233,6 +234,16 @@ target_link_libraries(map_matcher_main
 	${catkin_LIBRARIES}
 	${PCL_LIBRARIES}
 )
+
+### 06/26
+
+add_executable(map2image node/map2image_node.cpp src/map2image.cpp)
+target_link_libraries(map2image
+	${catkin_LIBRARIES}
+	${PCL_LIBRARIES}
+	${OpenCV_LIBRARIES}
+)
+
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
