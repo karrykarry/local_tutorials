@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
 	priv_nh.getParam("map_file",map_file);
 	map2image.map_read(map_file);
 
-	ros::Rate loop(10);
+	ros::Rate loop(1);
 	while(ros::ok()){
 		map2image.pcd2image();
 

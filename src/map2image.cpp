@@ -5,8 +5,8 @@
 
 Map2image::Map2image(ros::NodeHandle n,ros::NodeHandle private_nh_) :
 	// width(512), height(64), map_limit(20),
-	local_map_cloud(new pcl::PointCloud<pcl::PointXYZI>),
-	map_cloud(new pcl::PointCloud<pcl::PointXYZI>)
+	map_cloud(new pcl::PointCloud<pcl::PointXYZI>),
+	local_map_cloud(new pcl::PointCloud<pcl::PointXYZI>)
 {
 	map_pub = n.advertise<sensor_msgs::PointCloud2>("/vis/map", 10, true);
 	local_map_pub = n.advertise<sensor_msgs::PointCloud2>("/vis/local_map", 10);
@@ -16,6 +16,7 @@ Map2image::Map2image(ros::NodeHandle n,ros::NodeHandle private_nh_) :
 	private_nh_.getParam("height_pixel",height);
 	private_nh_.getParam("map_limit",map_limit);
 	private_nh_.getParam("pre_path",pre_path);
+
 }
 
 void
@@ -55,24 +56,34 @@ Map2image::distance(float x, float y, float z){
 void
 Map2image::visible_map(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, cv::Mat &based_image){
 	
-	float dist = 0;
+	bool flag[height][width];
+	fill(flag[0], flag[height], false);
+
+	float dist = 0;	
 	local_map_cloud->points.clear();
 	for(auto point : cloud->points){
 		dist = distance(point.x, point.y, point.z);
 		if( 0 < dist && dist <= map_limit){
 // theta = atan2 (y, x)
-			float col = atan2 (point.y, point.x) * 180.0 / M_PI;	//yaw
-			int col_ = (int) (col * (-1) * width / 360.0); 			//image用
+			// float col = atan2 (point.y, point.x) * 180.0 / M_PI;	//yaw
+			// int col_ = (int) (col * (-1) * width / 360.0); 			//image用
+			float col = (M_PI - atan2 (point.y, point.x));	//yaw
+			int col_ = (int) (col * width  / (2 * M_PI)); 			//image用
 // phi = acos(z / dist)
-			float row = acos(point.z / dist) * 180.0 / M_PI;		//pitch
-			int row_ = (int) (row * height / 180.0);
+			// float row = acos(point.z / dist) * 180.0 / M_PI;		//pitch
+			// float row = (M_PI/2 - asin(point.z / dist) * 180.0 / M_PI;		//pitch
+			float row = (M_PI/2 - asin(point.z / dist));		//pitch
+			int row_ = (int) (row * height / M_PI);
 
 			double dist_score = dist * MAX_NUM / map_limit;
-			
-			if( based_image.at<uchar>(row_, col_) != 0)
-	 			based_image.at<uchar>(row_, col_) = dist_score; 
-			else if(based_image.at<uchar>(row_, col_) < dist_score )
-	 			based_image.at<uchar>(row_, col_) = dist_score; 
+			if(!flag[row_][col_]){
+	 			based_image.at<uchar>(row_, col_) = dist_score;
+				flag[row_][col_] = true;
+			}
+			else{
+				if(based_image.at<uchar>(row_, col_) > dist_score )
+					based_image.at<uchar>(row_, col_) = dist_score; 
+			}
 
 			local_map_cloud->points.push_back(point);
 		}

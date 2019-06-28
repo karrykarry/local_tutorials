@@ -28,28 +28,19 @@ using namespace std;
 
 #define MAX_NUM 255		// 0~255 の値
 
-class Map2image{
+class Image2pcd{
 
 	private:
-		ros::Publisher map_pub;
-		ros::Publisher local_map_pub;
-		ros::Publisher image_pub;
+		ros::Publisher pc_pub_;
 		
-		cv::Mat based_image;
-
-		int width, height;
 		int map_limit;
-		string pre_path;
 		
-		pcl::PointCloud<pcl::PointXYZI>::Ptr map_cloud;
-		pcl::PointCloud<pcl::PointXYZI>::Ptr local_map_cloud;
-
-		void visible_map(pcl::PointCloud<pcl::PointXYZI>::Ptr clouds, cv::Mat &based_image);
-		float distance(float x, float y, float z);
+		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_cloud;
+		pcl::PointXYZ info2pc(float r, float theta, float phi);   
+	
 	public:
-		Map2image(ros::NodeHandle n,ros::NodeHandle priv_nh);
-		void map_read(string filename);
-		void pcd2image();
+		Image2pcd(ros::NodeHandle n,ros::NodeHandle priv_nh);
+		void create_pcd(string filename);
 };
 
 #endif
