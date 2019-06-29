@@ -11,37 +11,32 @@ Image2pcd::Image2pcd(ros::NodeHandle n,ros::NodeHandle private_nh_) :
 	private_nh_.getParam("map_limit",map_limit);
 }
 
-
-
-
 void
 Image2pcd::create_pcd(string image_file){
 	
-	cv::Mat input_img = cv::imread(image_file,1);
+	cv::Mat input_img = cv::imread(image_file,0);
 	
-	int COLS = input_img.cols;
-	int ROWS = input_img.rows;
-	
+	int COLS = input_img.cols;	//2048
+	int ROWS = input_img.rows;	//126
+
 	pc_cloud->points.clear();
 	for(int row=0;row<ROWS;row++){
 		for(int col=0;col<COLS;col++){
-			float dist_score = input_img.at<uchar>(row, col) * map_limit / MAX_NUM;
-			// float phi = row * M_PI / ROWS;
-			float phi = (ROWS/2 - row) * M_PI / ROWS;
-			float theta = (COLS/2 - col) * 2*M_PI / COLS; //pi~-pi
-			
-			pcl::PointXYZ pc;
-			// pc.x = dist_score * sin(theta) * cos(phi); 
-			// pc.y = dist_score * sin(theta) * sin(phi); 
-			// pc.z = dist_score * cos(theta);
-			pc.x = dist_score * cos(phi) * cos(theta); 
-			pc.y = dist_score * cos(phi) * sin(theta); 
-			pc.z = dist_score * sin(phi);
-			if(dist_score) pc_cloud->points.push_back(pc);
+			float dist_score = input_img.at<uchar>(row, col);
+
+			float dist_score_ = dist_score  * map_limit / MAX_NUM;
+			if(dist_score_){
+				float phi = (ROWS/2 - row) * (M_PI/2) / (ROWS / 2);
+				float theta = (COLS/2 - col) * M_PI / (COLS/2); //pi~-pi
+
+				pcl::PointXYZ pc;
+				pc.x = dist_score_ * cos(phi) * cos(theta); 
+				pc.y = dist_score_ * cos(phi) * sin(theta); 
+				pc.z = dist_score_ * sin(phi);
+				pc_cloud->points.push_back(pc);
+			}
 		}
 	}
-	// cout << pc_cloud->points.size() << endl;
-	cout << COLS << "," << ROWS << endl;
 
 	sensor_msgs::PointCloud2 pc_pub;
 	pcl::toROSMsg(*pc_cloud , pc_pub);           

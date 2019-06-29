@@ -3,10 +3,10 @@
 	<node name="map2image" pkg="local_tutorials" type="map2image" output="screen" >
 		<param name="map_file" value="/home/amsl/ros_catkin_ws/maps/d_kan_indoor.pcd" />
 		<!-- <param name="map_file" value="/home/amsl/ros_catkin_ws/maps/kakunin.pcd" /> -->
-		<param name="width_pixel" value="2048" />
+		<param name="width_pixel" value="1024" />
 		<param name="height_pixel" value="128" />
 		<param name="map_limit" value= "20" />
-		<param name="pre_path" value="/home/amsl/Pictures/GAN/map2depth/map2depth_after_" />
+		<param name="pre_path" value="/home/amsl/Pictures/GAN/map2depth/d_kan" />
 		<!-- <param name="map_file" value="/home/amsl/ros_catkin_ws/maps/d_kan_indoor2around_.pcd" /> -->
 	</node>
 </launch>

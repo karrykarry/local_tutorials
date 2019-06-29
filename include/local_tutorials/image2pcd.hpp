@@ -26,7 +26,7 @@
 
 using namespace std;
 
-#define MAX_NUM 255		// 0~255 の値
+#define MAX_NUM 255.0		// 0~255 の値
 
 class Image2pcd{
 

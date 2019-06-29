@@ -65,17 +65,14 @@ Map2image::visible_map(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, cv::Mat &base
 		dist = distance(point.x, point.y, point.z);
 		if( 0 < dist && dist <= map_limit){
 // theta = atan2 (y, x)
-			// float col = atan2 (point.y, point.x) * 180.0 / M_PI;	//yaw
-			// int col_ = (int) (col * (-1) * width / 360.0); 			//image用
 			float col = (M_PI - atan2 (point.y, point.x));	//yaw
 			int col_ = (int) (col * width  / (2 * M_PI)); 			//image用
 // phi = acos(z / dist)
-			// float row = acos(point.z / dist) * 180.0 / M_PI;		//pitch
-			// float row = (M_PI/2 - asin(point.z / dist) * 180.0 / M_PI;		//pitch
 			float row = (M_PI/2 - asin(point.z / dist));		//pitch
 			int row_ = (int) (row * height / M_PI);
 
 			double dist_score = dist * MAX_NUM / map_limit;
+
 			if(!flag[row_][col_]){
 	 			based_image.at<uchar>(row_, col_) = dist_score;
 				flag[row_][col_] = true;
@@ -88,7 +85,7 @@ Map2image::visible_map(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud, cv::Mat &base
 			local_map_cloud->points.push_back(point);
 		}
 	}
-	cout << local_map_cloud->points.size() << endl;
+
 	sensor_msgs::PointCloud2 vis_map;
 	pcl::toROSMsg(*local_map_cloud , vis_map);           
 
@@ -104,7 +101,6 @@ Map2image::pcd2image(){
 	static int i = 0;
 	std::ostringstream oss;
 	oss << std::setfill( '0' ) << std::setw( 3 ) << i++;
-
 
 	cv::Mat based_image = cv::Mat::zeros(height, width, CV_8UC1);
 	
